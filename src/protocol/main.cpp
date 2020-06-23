@@ -27,7 +27,6 @@ namespace baikaldb {
 
 // Signal handlers.
 void handle_exit_signal() {
-    DB_NOTICE("Server shutdown gracefully.");
     NetworkServer::get_instance()->graceful_shutdown();
 }
 } // namespace baikaldb
@@ -37,7 +36,9 @@ int main(int argc, char **argv) {
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, (sighandler_t)baikaldb::handle_exit_signal);
     signal(SIGTERM, (sighandler_t)baikaldb::handle_exit_signal);
-
+#ifdef BAIKALDB_REVISION
+    google::SetVersionString(BAIKALDB_REVISION);
+#endif
     google::ParseCommandLineFlags(&argc, &argv, true);
     google::SetCommandLineOption("flagfile", "conf/gflags.conf");
     // Initail log
@@ -74,6 +75,7 @@ int main(int argc, char **argv) {
     if (!server->start()) {
         DB_FATAL("Failed to start server.");
     }
+    DB_NOTICE("Server shutdown gracefully.");
 
     // Stop server.
     server->stop();
